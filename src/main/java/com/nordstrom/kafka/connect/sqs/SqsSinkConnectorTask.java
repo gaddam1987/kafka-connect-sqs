@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map ;
 
-import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.header.Header;
 import org.apache.kafka.connect.header.Headers;
@@ -31,7 +30,7 @@ import org.apache.kafka.connect.sink.SinkTask ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
-import com.nordstrom.kafka.connect.sqs.SqsSinkConnector ;
+import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 
 public class SqsSinkConnectorTask extends SinkTask {
   private final Logger log = LoggerFactory.getLogger( this.getClass() ) ;
@@ -98,9 +97,10 @@ public class SqsSinkConnectorTask extends SinkTask {
         for(Header header: headers) {
           if(allNamesEnabled || attributesList.contains(header.key())) {
             if(header.schema().equals(Schema.STRING_SCHEMA)) {
-              messageAttributes.put(header.key(), new MessageAttributeValue()
-                .withDataType("String")
-                .withStringValue((String)header.value()));
+              messageAttributes.put(header.key(), MessageAttributeValue.builder()
+              .dataType(body != null ? "String" : "Binary")
+              .stringValue((String)header.value())
+              .build());
             }
           }
         }

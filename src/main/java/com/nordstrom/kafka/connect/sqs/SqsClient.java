@@ -46,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.nordstrom.kafka.connect.utils.StringUtils;
+import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 
 public class SqsClient implements Closeable { // Implements Closeable
   private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -125,7 +126,7 @@ public class SqsClient implements Closeable { // Implements Closeable
         .queueUrl(url)
         .maxNumberOfMessages(maxMessages)
         .waitTimeSeconds(waitTimeSeconds)
-        .attributeNames(""); // Start with empty, then add if needed
+        .messageAttributeNames(""); // Start with empty, then add if needed
 
     if (messageAttributesEnabled) {
       if (messageAttributesList.isEmpty()) {
@@ -155,7 +156,7 @@ public class SqsClient implements Closeable { // Implements Closeable
    * @param messageAttributes The message attributes to send (v1 type, will be converted).
    * @return Sequence number when FIFO; otherwise, the message identifier
    */
-  public String send(final String url, final String body, final String groupId, final String messageId, final Map<String, com.amazonaws.services.sqs.model.MessageAttributeValue> messageAttributes) {
+  public String send(final String url, final String body, final String groupId, final String messageId, final Map<String, MessageAttributeValue> messageAttributes) {
     log.debug(".send: queue={}, gid={}, mid={}", url, groupId, messageId);
 
     Guard.verifyValidUrl(url);
@@ -167,41 +168,7 @@ public class SqsClient implements Closeable { // Implements Closeable
     SendMessageRequest.Builder requestBuilder = SendMessageRequest.builder().queueUrl(url).messageBody(body);
 
     if (messageAttributes != null) {
-      Map<String, MessageAttributeValue> v2Attributes = new HashMap<>();
-      for (Map.Entry<String, com.amazonaws.services.sqs.model.MessageAttributeValue> entry : messageAttributes.entrySet()) {
-        com.amazonaws.services.sqs.model.MessageAttributeValue v1Value = entry.getValue();
-        com.amazonaws.services.sqs.model.MessageAttributeValue v1Value = entry.getValue();
-        software.amazon.awssdk.services.sqs.model.MessageAttributeValue.Builder v2Builder = software.amazon.awssdk.services.sqs.model.MessageAttributeValue.builder();
-        
-        v2Builder.dataType(v1Value.getDataType()); // Always set dataType
-
-        if (v1Value.getStringValue() != null) {
-            v2Builder.stringValue(v1Value.getStringValue());
-        }
-        if (v1Value.getBinaryValue() != null) {
-            v2Builder.binaryValue(software.amazon.awssdk.core.SdkBytes.fromByteBuffer(v1Value.getBinaryValue()));
-        }
-        if (v1Value.getStringListValues() != null && !v1Value.getStringListValues().isEmpty()) {
-            v2Builder.stringListValues(v1Value.getStringListValues());
-        }
-        if (v1Value.getBinaryListValues() != null && !v1Value.getBinaryListValues().isEmpty()) {
-            v2Builder.binaryListValues(
-                v1Value.getBinaryListValues().stream()
-                    .map(software.amazon.awssdk.core.SdkBytes::fromByteBuffer)
-                    .collect(java.util.stream.Collectors.toList())
-            );
-        }
-        // IMPORTANT: SDK v1 MessageAttributeValue also had DataType specific list values 
-        // like BinaryListValues, StringListValues, NumberListValues etc.
-        // The above covers String and Binary lists based on v1Value.getStringListValues() and v1Value.getBinaryListValues().
-        // If the original code supported other types (e.g. NumberListValues, or if dataType indicated a list type for stringValue/binaryValue),
-        // that logic needs to be replicated. However, the v1 `MessageAttributeValue` class itself primarily features
-        // `StringValue`, `BinaryValue`, `StringListValues`, `BinaryListValues`, and `DataType`.
-        // So, covering these should be comprehensive for direct field mapping.
-
-        v2Attributes.put(entry.getKey(), v2Builder.build());
-      }
-      requestBuilder.messageAttributes(v2Attributes);
+      requestBuilder.messageAttributes(messageAttributes);
     }
 
     if (fifo) {

@@ -19,8 +19,12 @@ package com.nordstrom.kafka.connect.sqs ;
 import java.util.*;
 import java.util.stream.Collectors ;
 
-import com.amazonaws.services.sqs.model.MessageAttributeValue;
+
 import com.nordstrom.kafka.connect.utils.StringUtils;
+
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
+
 import org.apache.kafka.connect.data.Schema ;
 import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.header.ConnectHeaders;
@@ -29,7 +33,7 @@ import org.apache.kafka.connect.source.SourceTask ;
 import org.slf4j.Logger ;
 import org.slf4j.LoggerFactory ;
 
-import com.amazonaws.services.sqs.model.Message ;
+
 import com.nordstrom.kafka.connect.About ;
 
 public class SqsSourceConnectorTask extends SourceTask {
@@ -65,7 +69,7 @@ public class SqsSourceConnectorTask extends SourceTask {
   }
 
   private String getPartitionKey(Message message) {
-    String messageId = message.getMessageId();
+    String messageId = message.messageId();
     if (!config.getMessageAttributesEnabled()) {
       return messageId;
     }
@@ -75,16 +79,16 @@ public class SqsSourceConnectorTask extends SourceTask {
     }
 
     // search for the String message attribute with the same name as the configured partition key
-    Map<String, MessageAttributeValue> attributes = message.getMessageAttributes();
+    Map<String, MessageAttributeValue> attributes = message.messageAttributes();
     for(String attributeKey: attributes.keySet()) {
       if (!Objects.equals(attributeKey, messageAttributePartitionKey)) {
         continue;
       }
       MessageAttributeValue attrValue = attributes.get(attributeKey);
-      if (!attrValue.getDataType().equals("String")) {
+      if (!attrValue.dataType().equals("String")) {
         continue;
       }
-      return attrValue.getStringValue();
+      return attrValue.stringValue();
     }
     return messageId;
   }
@@ -120,23 +124,23 @@ public class SqsSourceConnectorTask extends SourceTask {
       Map<String, String> sourceOffset = new HashMap<>() ;
       // Save the message id and receipt-handle. receipt-handle is needed to delete
       // the message once the record is committed.
-      sourceOffset.put( SqsConnectorConfigKeys.SQS_MESSAGE_ID.getValue(), message.getMessageId() ) ;
-      sourceOffset.put( SqsConnectorConfigKeys.SQS_MESSAGE_RECEIPT_HANDLE.getValue(), message.getReceiptHandle() ) ;
+      sourceOffset.put( SqsConnectorConfigKeys.SQS_MESSAGE_ID.getValue(), message.messageId() ) ;
+      sourceOffset.put( SqsConnectorConfigKeys.SQS_MESSAGE_RECEIPT_HANDLE.getValue(), message.receiptHandle() ) ;
       log.trace( ".poll:source-partition={}", sourcePartition ) ;
       log.trace( ".poll:source-offset={}", sourceOffset ) ;
 
-      final String body = message.getBody();
+      final String body = message.body();
       final String key = getPartitionKey(message);
       final String topic = config.getTopics() ;
 
       final ConnectHeaders headers = new ConnectHeaders();
       if (config.getMessageAttributesEnabled()) {
-        Map<String, MessageAttributeValue> attributes = message.getMessageAttributes();
+        Map<String, MessageAttributeValue> attributes = message.messageAttributes();
         // sqs api should return only the fields specified in the list
         for(String attributeKey: attributes.keySet()) {
           MessageAttributeValue attrValue = attributes.get(attributeKey);
-          if (attrValue.getDataType().equals("String")) {
-            SchemaAndValue schemaAndValue = new SchemaAndValue(Schema.STRING_SCHEMA, attrValue.getStringValue());
+          if (attrValue.dataType().equals("String")) {
+            SchemaAndValue schemaAndValue = new SchemaAndValue(Schema.STRING_SCHEMA, attrValue.stringValue());
             headers.add(attributeKey, schemaAndValue);
           }
         }
@@ -157,7 +161,6 @@ public class SqsSourceConnectorTask extends SourceTask {
         .toString() ;
     log.debug( ".commit-record:url={}, receipt-handle={}", config.getQueueUrl(), receipt ) ;
     client.delete( config.getQueueUrl(), receipt ) ;
-    super.commitRecord( record ) ;
   }
 
   /*
