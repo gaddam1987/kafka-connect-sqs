@@ -1,6 +1,7 @@
 # Compiled class file
 *.class
-
+*.jar
+*.zip
 # Log file
 *.log
 .vscode

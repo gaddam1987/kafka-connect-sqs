@@ -16,18 +16,12 @@
 
 package com.nordstrom.kafka.connect.sqs;
 
-import java.net.URI;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors; // New import
-import java.io.Closeable; // New import
-import java.io.IOException; // New import, though not strictly needed for SqsClient.close()
-
-// AWS SDK v2 imports
+import com.nordstrom.kafka.connect.utils.StringUtils;
+import org.apache.kafka.common.Configurable;
+import org.apache.kafka.connect.errors.ConnectException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.core.SdkBytes; // New import
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClientBuilder;
@@ -40,13 +34,10 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
-import org.apache.kafka.common.Configurable;
-import org.apache.kafka.connect.errors.ConnectException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.nordstrom.kafka.connect.utils.StringUtils;
-import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
+import java.io.Closeable;
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
 
 public class SqsClient implements Closeable { // Implements Closeable
   private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -210,7 +201,7 @@ public class SqsClient implements Closeable { // Implements Closeable
 
       // If the default is still the v1 DefaultAWSCredentialsProviderChain,
       // we should explicitly use the v2 DefaultCredentialsProvider.
-      if ("com.amazonaws.auth.DefaultAWSCredentialsProviderChain".equals(providerClass)) {
+      if ("software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider".equals(providerClass)) {
         log.info("Using AWS SDK v2 DefaultCredentialsProvider as the effective default.");
         return DefaultCredentialsProvider.create();
       }

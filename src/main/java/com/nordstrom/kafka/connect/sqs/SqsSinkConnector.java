@@ -16,19 +16,17 @@
 
 package com.nordstrom.kafka.connect.sqs ;
 
-import java.util.ArrayList ;
-import java.util.HashMap ;
-import java.util.List ;
-import java.util.Map ;
+import com.nordstrom.kafka.connect.About;
+import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.connect.connector.Task;
+import org.apache.kafka.connect.sink.SinkConnector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.apache.kafka.common.config.ConfigDef ;
-import org.apache.kafka.connect.connector.Task ;
-import org.apache.kafka.connect.sink.SinkConnector ;
-import org.slf4j.Logger ;
-import org.slf4j.LoggerFactory ;
-
-import com.nordstrom.kafka.connect.About ;
-import com.nordstrom.kafka.connect.sqs.SqsSinkConnectorConfig ;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SqsSinkConnector extends SinkConnector {
   private final Logger log = LoggerFactory.getLogger( this.getClass() ) ;

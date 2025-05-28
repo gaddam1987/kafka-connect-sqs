@@ -16,25 +16,24 @@
 
 package com.nordstrom.kafka.connect.sqs ;
 
-import java.util.*;
-import java.util.stream.Collectors ;
-
-
+import com.nordstrom.kafka.connect.About;
 import com.nordstrom.kafka.connect.utils.StringUtils;
-
+import org.apache.kafka.connect.data.Schema;
+import org.apache.kafka.connect.data.SchemaAndValue;
+import org.apache.kafka.connect.header.ConnectHeaders;
+import org.apache.kafka.connect.source.SourceRecord;
+import org.apache.kafka.connect.source.SourceTask;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 
-import org.apache.kafka.connect.data.Schema ;
-import org.apache.kafka.connect.data.SchemaAndValue;
-import org.apache.kafka.connect.header.ConnectHeaders;
-import org.apache.kafka.connect.source.SourceRecord ;
-import org.apache.kafka.connect.source.SourceTask ;
-import org.slf4j.Logger ;
-import org.slf4j.LoggerFactory ;
-
-
-import com.nordstrom.kafka.connect.About ;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class SqsSourceConnectorTask extends SourceTask {
   private final Logger log = LoggerFactory.getLogger( this.getClass() ) ;

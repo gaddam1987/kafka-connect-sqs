@@ -3,15 +3,12 @@ package com.nordstrom.kafka.connect.auth;
 import com.nordstrom.kafka.connect.sqs.SqsConnectorConfigKeys;
 import com.nordstrom.kafka.connect.utils.StringUtils;
 import org.apache.kafka.common.Configurable;
-
-
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.StsClientBuilder;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
-
 
 import java.util.Map;
 
